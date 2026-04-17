@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.join(SCRIPT_DIR, 'src'))
 from src.anti_spoof_predict import AntiSpoofPredict
 from src.generate_patches import CropImage
 from src.utility import parse_model_name
+from src.opencv_face import OpenCVFaceDetector
 
 # Use absolute paths
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -45,11 +46,13 @@ print(f"   Face detection config: {DETECTION_MODEL_DIR}")
 try:
     model_test = AntiSpoofPredict(0)  # 0 = CPU mode
     image_cropper = CropImage()
+    face_detector = OpenCVFaceDetector()
     print("✅ KageN AI models loaded and ready!")
 except Exception as e:
     print(f"❌ [KageN AI] Model initialization failed: {e}")
     model_test = None
     image_cropper = None
+    face_detector = None
 
 
 # ========== ROUTES ==========
@@ -90,10 +93,10 @@ async def root():
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
-                width: 320px;
-                height: 320px;
-                border-radius: 160px;
-                border: 4px solid #00ff00;
+                width: 400px;
+                height: 400px;
+                border-radius: 200px;
+                border: 6px solid #00ff00;
                 box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
                 pointer-events: none;
                 z-index: 10;
@@ -267,28 +270,20 @@ async def root():
             // Capture and detect
             async function captureAndDetect() {
                 if (!isRunning || isDetecting) return;
-                
                 isDetecting = true;
-                frameCount++;
-                frameCounter.textContent = `Frames: ${frameCount}`;
-                
                 try {
                     // Set canvas size to match video
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
-                    
                     // Draw video frame
                     ctx.drawImage(video, 0, 0);
-                    
                     // Get base64
                     const base64Image = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
-                    
                     // Update UI - analyzing
                     statusText.textContent = '🔍 Analyzing...';
                     statusText.className = 'analyzing';
                     confidenceText.textContent = '';
                     analysisText.textContent = '';
-                    
                     // Call API
                     const response = await fetch('/detect_liveness', {
                         method: 'POST',
@@ -297,16 +292,20 @@ async def root():
                         },
                         body: JSON.stringify({ image: base64Image })
                     });
-                    
                     const result = await response.json();
-                    
-                    // Update UI based on result
                     if (!result.face_detected) {
                         statusText.textContent = '👤 No face detected';
                         statusText.className = '';
                         confidenceText.textContent = 'Position your face clearly in the circle';
                         analysisText.textContent = '';
-                    } else if (result.is_real) {
+                        // Only increment frame counter if face is detected
+                        // return early, do not count this frame
+                        return;
+                    }
+                    // Only increment frame counter and show analysis if face is detected
+                    frameCount++;
+                    frameCounter.textContent = `Frames: ${frameCount}`;
+                    if (result.is_real) {
                         statusText.textContent = '✅ REAL PERSON';
                         statusText.className = 'real';
                         confidenceText.textContent = `Confidence: ${(result.confidence * 100).toFixed(1)}%`;
@@ -317,7 +316,6 @@ async def root():
                         confidenceText.textContent = `Spoof Score: ${(result.confidence * 100).toFixed(1)}%`;
                         analysisText.textContent = result.analysis || 'Photo or video detected!';
                     }
-                    
                 } catch (error) {
                     console.error('Detection error:', error);
                     statusText.textContent = '⚠️ Network error';
@@ -440,13 +438,12 @@ async def detect_liveness(data: dict):
                 "bbox": []
             })
         
-        # Get face bounding box
+        # Use MediaPipe for face detection
         try:
-            image_bbox = model_test.get_bbox(image)
+            image_bbox = face_detector.get_bbox(image)
         except Exception as e:
-            print(f"Face detection error: {e}")
+            print(f"MediaPipe face detection error: {e}")
             image_bbox = None
-        
         if image_bbox is None:
             return JSONResponse({
                 "is_real": False,
