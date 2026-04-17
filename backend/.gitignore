@@ -1,0 +1,109 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.tox/
+*.cover
+*.coverage
+*.coverage.*
+.cache
+.pytest_cache/
+coverage.xml
+htmlcov/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# envs
+env/
+venv/
+ENV/
+.env
+.venv/
+venv.bak/
+
+# Virtualenv
+venv/
+ENV/
+env.bak/
+
+# Spyder project settings
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+*ngrok*.log
+uvicorn.log
+
+# ngrok binary downloaded by wrapper
+ngrok-bin
+ngrok-v3-stable-linux-amd64.tgz.cynet
+ngrok.cynet
+
+# Model weights and large resources (do NOT commit large model files)
+resources/anti_spoof_models/*.pth
+resources/detection_model/*.caffemodel
+
+# Node / React Native
+node_modules/
+npm-debug.log*
+yarn-error.log
+yarn-debug.log*
+package-lock.json
+
+# Android / iOS build outputs
+android/**/build/
+**/build/
+*.keystore
+
+# Xcode
+ios/Pods/
+*.xcworkspace
+*.xcuserstate
+*.xcuserdata
+
+# Generated files
+*.pyc
+*.pyo
